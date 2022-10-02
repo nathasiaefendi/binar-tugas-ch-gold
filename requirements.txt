@@ -1,0 +1,24 @@
+# https://pypi.org/project/Flask
+Flask==2.2.2
+
+# https://pypi.org/project/gunicorn
+gunicorn==20.1.0
+
+# https://pypi.org/project/flasgger/
+flasgger==0.9.5
+
+# https://pypi.org/project/clean-text/
+clean-text==0.6.0
+
+# https://pypi.org/project/pandas/
+pandas==1.5.0 
+
+# https://pypi.org/project/seaborn/
+seaborn==0.12.0 
+
+# https://pypi.org/project/scipy/
+scipy==1.9.1 
+
+# # https://pypi.org/project/wordcloud/
+# wordcloud==1.8.2.2
+

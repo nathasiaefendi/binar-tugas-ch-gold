@@ -1,0 +1,19 @@
+tags:
+  - name: Text Cleansing
+post:
+    summary: Text yang akan dibersihkan (pembersihan tweet / text)
+    description: Text yang akan dibersihkan (pembersihan tweet / text)
+    produces:
+      - application/json
+parameters:
+  - name : text
+    in : formData
+    required: true
+    type: string
+responses:
+  '200':
+    description: Successful response
+  '400':
+    description: Bad Request
+  '500':
+    description: Internal Server Error
