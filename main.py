@@ -142,11 +142,8 @@ def save_to_sqllite(raw, output, advanced_output = ''):
 
         if(advanced_output == ''):
             cursor.execute("INSERT INTO text_cleansing (raw, basic_output) VALUES (?, ?)", [raw, output])
-            # query = "INSERT INTO text_cleansing (raw, basic_output) VALUES ('{0}', '{1}')".format(raw, output)
         else:
             cursor.execute("INSERT INTO text_cleansing (raw,basic_output,advanced_output) VALUES (?, ?, ?)", [raw, output, advanced_output])
-            # query = "INSERT INTO text_cleansing (raw,basic_output,advanced_output) VALUES ('{0}', '{1}', '{2}')".format(raw, output, advanced_output)
-            # query = 'INSERT INTO text_cleansing (raw, output, advanced_output) VALUES ({0}, {1}, {2})'.format(raw, output, advanced_output)
 
         conn.commit()
         cursor.close()
