@@ -129,7 +129,6 @@ def clean_text(text):
 def clean_text_advanced(text):
     text = str(text).lower()
     return pipeline_function(text, [
-                     clean_text,
                      replace_slang,
                      replace_stopwords])
 
@@ -137,19 +136,17 @@ def clean_text_advanced(text):
 #database function
 def save_to_sqllite(raw, output, advanced_output = ''):
     try:
-        query = ''
-
-        if(advanced_output == ''):
-            query = "INSERT INTO text_cleansing (raw, basic_output) VALUES ('{0}', '{1}')".format(raw, output)
-        else:
-            query = "INSERT INTO text_cleansing (raw,basic_output,advanced_output) VALUES ('{0}', '{1}', '{2}')".format(raw, output, advanced_output)
-            # query = 'INSERT INTO text_cleansing (raw, output, advanced_output) VALUES ({0}, {1}, {2})'.format(raw, output, advanced_output)
-
         conn = sqlite3.connect('text_cleansing.db')
         cursor = conn.cursor()
-        cursor.execute('DROP TABLE text_cleansing')
         cursor.execute('CREATE TABLE IF NOT EXISTS text_cleansing (raw varchar(255) NOT NULL, basic_output VARCHAR(255) NOT NULL, advanced_output VARCHAR(255))')
-        cursor.execute(query)
+
+        if(advanced_output == ''):
+            cursor.execute("INSERT INTO text_cleansing (raw, basic_output) VALUES (?, ?)", [raw, output])
+            # query = "INSERT INTO text_cleansing (raw, basic_output) VALUES ('{0}', '{1}')".format(raw, output)
+        else:
+            cursor.execute("INSERT INTO text_cleansing (raw,basic_output,advanced_output) VALUES (?, ?, ?)", [raw, output, advanced_output])
+            # query = "INSERT INTO text_cleansing (raw,basic_output,advanced_output) VALUES ('{0}', '{1}', '{2}')".format(raw, output, advanced_output)
+            # query = 'INSERT INTO text_cleansing (raw, output, advanced_output) VALUES ({0}, {1}, {2})'.format(raw, output, advanced_output)
 
         conn.commit()
         cursor.close()
@@ -211,7 +208,8 @@ def text_cleansing():
     if(db == True):
         json_response = text_cleansing_success(text, cleansed_text)
     else:
-        json_response = text_cleansing_error()
+        json_response = db
+        # json_response = text_cleansing_error()
 
     return jsonify(json_response)
 
@@ -222,14 +220,15 @@ def text_cleansing_advanced():
     """Cleanse Text & Save it to sqllite (With additional function)"""
     #clean text
     text = request.form.get('text')
-    cleansed_text = clean_text_advanced(text)
+    cleansed_text = clean_text(text)
+    cleansed_text_advanced = clean_text_advanced(cleansed_text)
      #save to sql
-    db = save_to_sqllite(text, cleansed_text)
+    db = save_to_sqllite(text, cleansed_text, cleansed_text_advanced)
 
     #generate balikan json
     json_response = object()
     if(db == True):
-        json_response = text_cleansing_success(text, cleansed_text)
+        json_response = text_cleansing_success(text, cleansed_text_advanced)
     else:
         json_response = text_cleansing_error()
 
@@ -258,6 +257,8 @@ def text_cleansing_file():
             df = df_text_cleansing(df)
             data_output = df[['tweet', 'tweet_clean']]
 
+            #save to sql
+            for i, tweet_clean in enumerate(df['tweet_clean']): save_to_sqllite(data_output.iloc[[i]]['tweet'], tweet_clean)
             #save ke csv
             file_name = 'file_cleansing_{0}.csv'.format(datetime.now().strftime('%m%d%Y_%H%M%S'))
             data_output.to_csv('result/' + file_name)
@@ -292,6 +293,11 @@ def text_cleansing_file_advanced():
             df = df_text_cleansing(df.sample(n=20, random_state=1))
             df['tweet_clean_advanced'] = df['tweet_clean'].apply(clean_text_advanced)
             data_output = df[['tweet', 'tweet_clean', 'tweet_clean_advanced']]
+
+
+            # save to sql
+            for i, tweet_clean in enumerate(data_output['tweet_clean']): print(data_output.iloc[[i]]['tweet'], tweet_clean, data_output.iloc[[i]]['tweet_clean_advanced'])
+            # for i, tweet_clean in enumerate(data_output['tweet_clean']): save_to_sqllite(data_output[i]['tweet'], tweet_clean, data_output[i]['tweet_clean_advanced'])
 
             #save ke csv
             file_name = 'file_cleansing_advanced_{0}.csv'.format(datetime.now().strftime('%m%d%Y_%H%M%S'))
